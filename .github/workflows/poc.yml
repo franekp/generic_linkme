@@ -1,0 +1,29 @@
+name: Generic Linkme Proof-of-Concept
+
+on: [push]
+jobs:
+  poc:
+    runs-on: ${{matrix.os}}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [nightly, beta, stable, 1.69.0]
+        os: [ubuntu]
+        include:
+          - name: macOS
+            os: macos
+            rust: stable
+          - name: Windows (gnu)
+            os: windows
+            rust: stable-x86_64-pc-windows-gnu
+          - name: Windows (msvc)
+            os: windows
+            rust: stable-x86_64-pc-windows-msvc
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{matrix.rust}}
+      - run: cargo run
+      - run: cargo run --release
