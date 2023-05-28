@@ -1,4 +1,5 @@
 use capstone::prelude::*;
+use rand::prelude::*;
 
 
 #[inline(never)]
@@ -122,10 +123,10 @@ fn extract_fn_pointers<T>() -> Vec<T> {
 }
 
 pub fn always_false_but_included_in_binary() -> bool {
-    #[allow(unused_mut)]
-    static mut IS_USED: bool = false;
-    let result = unsafe { std::ptr::read_volatile::<bool>(&IS_USED as *const bool) };
-    result
+    let mut rng = rand::thread_rng();
+    let a: u64 = rng.gen();
+    let b: u64 = rng.gen();
+    return a == b && b == 100000000
 }
 
 fn main() {
