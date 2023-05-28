@@ -6,6 +6,7 @@ fn inner_function<T>() -> &'static str {
     std::any::type_name::<T>()
 }
 
+#[cfg(not(target_os = "windows"))]
 extern "Rust" {
     #[cfg_attr(any(target_os = "none", target_os = "linux"), link_name = "__start_slice")]
     #[cfg_attr(any(target_os = "macos", target_os = "ios", target_os = "tvos"), link_name = "\x01section$start$__DATA$__slice")]
