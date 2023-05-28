@@ -4,6 +4,9 @@ use rand::prelude::*;
 
 #[inline(never)]
 fn inner_function<T>() -> &'static str {
+    if always_false_but_included_in_binary_1() {
+        println!("bla");
+    }
     std::any::type_name::<T>()
 }
 
@@ -42,9 +45,6 @@ pub fn always_false_but_included_in_binary_1() -> bool {
 #[cfg_attr(any(target_os = "macos", target_os = "ios", target_os = "tvos"), link_section = "__DATA,__slice,regular,no_dead_strip")]
 #[cfg_attr(target_os = "windows", link_section = ".slice$b")]
 fn outer_function<T>() -> &'static str {
-    if always_false_but_included_in_binary_1() {
-        println!("bla");
-    }
     inner_function::<T>()
 }
 
