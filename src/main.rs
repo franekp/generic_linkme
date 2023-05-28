@@ -31,11 +31,20 @@ static stop_slice: [u8; 0] = [];
 #[cfg_attr(any(target_os = "macos", target_os = "ios", target_os = "tvos"), link_section = "__DATA,__slice,regular,no_dead_strip")]
 static mut LINKME_PLEASE: [u8; 0] = [];
 
+pub fn always_false_but_included_in_binary_1() -> bool {
+    static mut IS_USED: bool = false;
+    let result = unsafe { std::ptr::read_volatile::<bool>(&IS_USED as *const bool) };
+    result
+}
+
 #[inline(never)]
 #[cfg_attr(any(target_os = "none", target_os = "linux"), link_section = "slice")]
 #[cfg_attr(any(target_os = "macos", target_os = "ios", target_os = "tvos"), link_section = "__DATA,__slice,regular,no_dead_strip")]
 #[cfg_attr(target_os = "windows", link_section = ".slice$b")]
 fn outer_function<T>() -> &'static str {
+    if always_false_but_included_in_binary_1() {
+        println!("bla");
+    }
     inner_function::<T>()
 }
 
