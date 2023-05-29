@@ -3,11 +3,9 @@ use rand::prelude::*;
 
 
 #[inline(never)]
-fn inner_function<T>() -> &'static str {
-    if always_false_but_included_in_binary_1() {
-        println!("bla");
-    }
-    std::any::type_name::<T>()
+#[allow(improper_ctypes_definitions)]
+extern fn inner_function<T>() -> &'static str {
+    unsafe { std::ptr::read_volatile(&std::any::type_name::<T>()) }
 }
 
 #[cfg(not(target_os = "windows"))]
@@ -44,8 +42,8 @@ pub fn always_false_but_included_in_binary_1() -> bool {
 #[cfg_attr(any(target_os = "none", target_os = "linux"), link_section = "slice")]
 #[cfg_attr(any(target_os = "macos", target_os = "ios", target_os = "tvos"), link_section = "__DATA,__slice,regular,no_dead_strip")]
 #[cfg_attr(target_os = "windows", link_section = ".slice$b")]
-fn outer_function<T>() -> &'static str {
-    inner_function::<T>()
+extern fn outer_function<T>() -> &'static str {
+    unsafe { std::ptr::read_volatile(&inner_function::<T>()) }
 }
 
 #[cfg(not(target_os = "windows"))]
@@ -72,6 +70,7 @@ fn disasm_code() {
         .expect("Failed to create Capstone object");
 
     let code = get_code();
+    println!("Code len = {}", code.len());
     let addr = &code[0] as *const u8 as usize;
     let insns = cs.disasm_all(get_code(), addr as u64)
         .expect("Failed to disassemble");
@@ -140,13 +139,15 @@ pub fn always_false_but_included_in_binary() -> bool {
 
 fn main() {
     disasm_code();
-    let fs = extract_fn_pointers::<fn() -> &'static str>();
+    let fs = extract_fn_pointers::<extern fn() -> &'static str>();
     for f in fs {
-        println!("{}", f())
+        println!("{}", f());
     }
-    
+
     if always_false_but_included_in_binary() {
         println!("{}", outer_function::<String>());
+        println!("{}", outer_function::<u32>());
+        println!("{}", outer_function::<bool>());
         println!("{}", outer_function::<std::cell::RefCell<bool>>());
     }
 }
