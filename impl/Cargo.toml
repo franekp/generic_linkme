@@ -1,0 +1,23 @@
+[package]
+name = "generic-linkme-impl"
+version = "0.1.0"
+authors = ["David Tolnay <dtolnay@gmail.com>", "Franciszek Piszcz <franek.piszcz@gmail.com>"]
+description = "Implementation detail of the generic_linkme crate"
+documentation = "https://docs.rs/generic_linkme"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/franekp/generic_linkme"
+
+[lib]
+proc-macro = true
+
+[features]
+used_linker = []
+
+[dependencies]
+proc-macro2 = "1.0.2"
+quote = "1.0"
+syn = "2.0"
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
