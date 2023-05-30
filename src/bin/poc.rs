@@ -56,7 +56,7 @@ fn get_code() -> &'static [u8] {
 #[cfg(target_os = "windows")]
 fn get_code() -> &'static [u8] {
     let len = unsafe { &stop_slice as *const u8 as usize - &start_slice as *const u8 as usize };
-    let code = unsafe { std::slice::from_raw_parts(start_slice as *const u8, len) };
+    let code = unsafe { std::slice::from_raw_parts(&start_slice as *const u8, len) };
     code
 }
 
