@@ -81,7 +81,7 @@ impl<T> DistributedFnSlice<[T]> {
 
     #[doc(hidden)]
     #[inline]
-    pub unsafe fn private_typecheck(self, element: T) {
+    pub unsafe fn private_typecheck(&self, element: T) {
         mem::forget(element);
     }
 }

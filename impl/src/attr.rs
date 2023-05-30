@@ -31,7 +31,7 @@ pub(crate) fn linkme_path(attrs: &mut Vec<Attribute>) -> Result<Path> {
     });
 
     match errors {
-        None => Ok(linkme_path.unwrap_or_else(|| parse_quote!(::linkme))),
+        None => Ok(linkme_path.unwrap_or_else(|| parse_quote!(::generic_linkme))),
         Some(errors) => Err(errors),
     }
 }

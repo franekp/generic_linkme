@@ -24,8 +24,8 @@ pub fn distributed_slice(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let expanded = match args {
         Args::None => declaration::expand(parse_macro_input!(input)),
-        Args::Path(path) => element::expand(path, None, parse_macro_input!(input)),
-        Args::PathPos(path, pos) => element::expand(path, pos, parse_macro_input!(input)),
+        Args::Path(path) => element::expand2(path, None, parse_macro_input!(input)),
+        Args::PathPos(path, pos) => element::expand2(path, Some(pos), parse_macro_input!(input)),
     };
 
     TokenStream::from(expanded)
