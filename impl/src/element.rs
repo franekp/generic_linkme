@@ -215,18 +215,18 @@ impl Parse for Element2 {
         let item: ItemFn = syn::parse2(input.cursor().token_stream())?;
 
         let attrs = input.call(Attribute::parse_outer)?;
-        let vis: Visibility = input.parse()?;
+        let _vis: Visibility = input.parse()?;
         let constness: Option<Token![const]> = input.parse()?;
         let asyncness: Option<Token![async]> = input.parse()?;
         let unsafety: Option<Token![unsafe]> = input.parse()?;
-        let abi: Option<Abi> = input.parse()?;
+        let _abi: Option<Abi> = input.parse()?;
         let fn_token: Token![fn] = input.parse().map_err(|_| {
             Error::new_spanned(
                 item.to_token_stream(),
                 "distributed element must be a function item",
             )
         })?;
-        let ident: Ident = input.parse()?;
+        let _ident: Ident = input.parse()?;
         let generics: Generics = input.parse()?;
 
         let content;
@@ -253,7 +253,7 @@ impl Parse for Element2 {
         }
 
         let output: ReturnType = input.parse()?;
-        let where_clause: Option<WhereClause> = input.parse()?;
+        let _where_clause: Option<WhereClause> = input.parse()?;
 
         let content;
         braced!(content in input);
