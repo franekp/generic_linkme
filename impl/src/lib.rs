@@ -19,7 +19,7 @@ use proc_macro::TokenStream;
 use syn::parse_macro_input;
 
 #[proc_macro_attribute]
-pub fn distributed_slice(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn distributed_fn_slice(args: TokenStream, input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(args as Args);
 
     let expanded = match args {

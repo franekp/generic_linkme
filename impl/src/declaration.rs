@@ -1,6 +1,6 @@
 use crate::{attr, linker};
 use proc_macro2::{Span, TokenStream};
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream, Result};
 use syn::{
     bracketed, Attribute, Error, GenericArgument, Ident, Lifetime, PathArguments, Token, Type,
@@ -23,12 +23,34 @@ impl Parse for Declaration {
         if let Some(mut_token) = mut_token {
             return Err(Error::new_spanned(
                 mut_token,
-                "static mut is not supported by distributed_slice",
+                "static mut is not supported by distributed_fn_slice",
             ));
         }
         let ident: Ident = input.parse()?;
         input.parse::<Token![:]>()?;
-        let ty: Type = input.parse()?;
+        let mut ty: Type = input.parse()?;
+        let mut fn_ty = match &mut ty {
+            Type::BareFn(fn_ty) => fn_ty,
+            _ => return Err(Error::new_spanned(
+                ty.to_token_stream(),
+                "distributed_fn_slice can only contain bare function pointers",
+            )),
+        };
+        match &fn_ty.abi {
+            None => {
+                fn_ty.abi = Some(syn::parse2(quote! {extern "C"}).unwrap());
+            }
+            Some(abi) => {
+                let is_c = abi.name.is_none() || &abi.name.as_ref().unwrap().to_token_stream().to_string() == "C";
+                if !is_c {
+                    return Err(Error::new_spanned(
+                        abi.to_token_stream(),
+                        "distributed_fn_slice can only contain function pointers that use C ABI",
+                    ))
+                }
+            }
+        }
+
         input.parse::<Token![=]>()?;
 
         let content;
@@ -47,7 +69,7 @@ impl Parse for Declaration {
 }
 
 pub fn expand(input: TokenStream) -> TokenStream {
-    let msg = "distributed_slice is not implemented for this platform";
+    let msg = "distributed_fn_slice is not implemented for this platform";
     let error = Error::new_spanned(&input, msg);
     let unsupported_platform = error.to_compile_error();
 
@@ -78,40 +100,40 @@ pub fn expand(input: TokenStream) -> TokenStream {
     let linux_section = linker::linux::section(&ident);
     let linux_section_start = linker::linux::section_start(&ident);
     let linux_section_stop = linker::linux::section_stop(&ident);
-    let linux_dupcheck = linux_section.replacen("linkme", "linkm2", 1);
-    let linux_dupcheck_start = linux_section_start.replacen("linkme", "linkm2", 1);
-    let linux_dupcheck_stop = linux_section_stop.replacen("linkme", "linkm2", 1);
+    let linux_dupcheck = linux_section.replacen("generic_linkme", "generic_linkm2", 1);
+    let linux_dupcheck_start = linux_section_start.replacen("generic_linkme", "generic_linkm2", 1);
+    let linux_dupcheck_stop = linux_section_stop.replacen("generic_linkme", "generic_linkm2", 1);
 
     let macho_section = linker::macho::section(&ident);
     let macho_section_start = linker::macho::section_start(&ident);
     let macho_section_stop = linker::macho::section_stop(&ident);
-    let macho_dupcheck = macho_section.replacen("linkme", "linkm2", 1);
-    let macho_dupcheck_start = macho_section_start.replacen("linkme", "linkm2", 1);
-    let macho_dupcheck_stop = macho_section_stop.replacen("linkme", "linkm2", 1);
+    let macho_dupcheck = macho_section.replacen("generic_linkme", "generic_linkm2", 1);
+    let macho_dupcheck_start = macho_section_start.replacen("generic_linkme", "generic_linkm2", 1);
+    let macho_dupcheck_stop = macho_section_stop.replacen("generic_linkme", "generic_linkm2", 1);
 
     let windows_section = linker::windows::section(&ident);
     let windows_section_start = linker::windows::section_start(&ident);
     let windows_section_stop = linker::windows::section_stop(&ident);
-    let windows_dupcheck = windows_section.replacen("linkme", "linkm2", 1);
-    let windows_dupcheck_start = windows_section_start.replacen("linkme", "linkm2", 1);
-    let windows_dupcheck_stop = windows_section_stop.replacen("linkme", "linkm2", 1);
+    let windows_dupcheck = windows_section.replacen("generic_linkme", "generic_linkm2", 1);
+    let windows_dupcheck_start = windows_section_start.replacen("generic_linkme", "generic_linkm2", 1);
+    let windows_dupcheck_stop = windows_section_stop.replacen("generic_linkme", "generic_linkm2", 1);
 
     let illumos_section = linker::illumos::section(&ident);
     let illumos_section_start = linker::illumos::section_start(&ident);
     let illumos_section_stop = linker::illumos::section_stop(&ident);
-    let illumos_dupcheck = illumos_section.replacen("linkme", "linkm2", 1);
-    let illumos_dupcheck_start = illumos_section_start.replacen("linkme", "linkm2", 1);
-    let illumos_dupcheck_stop = illumos_section_stop.replacen("linkme", "linkm2", 1);
+    let illumos_dupcheck = illumos_section.replacen("generic_linkme", "generic_linkm2", 1);
+    let illumos_dupcheck_start = illumos_section_start.replacen("generic_linkme", "generic_linkm2", 1);
+    let illumos_dupcheck_stop = illumos_section_stop.replacen("generic_linkme", "generic_linkm2", 1);
 
     let freebsd_section = linker::freebsd::section(&ident);
     let freebsd_section_start = linker::freebsd::section_start(&ident);
     let freebsd_section_stop = linker::freebsd::section_stop(&ident);
-    let freebsd_dupcheck = freebsd_section.replacen("linkme", "linkm2", 1);
-    let freebsd_dupcheck_start = freebsd_section_start.replacen("linkme", "linkm2", 1);
-    let freebsd_dupcheck_stop = freebsd_section_stop.replacen("linkme", "linkm2", 1);
+    let freebsd_dupcheck = freebsd_section.replacen("generic_linkme", "generic_linkm2", 1);
+    let freebsd_dupcheck_start = freebsd_section_start.replacen("generic_linkme", "generic_linkm2", 1);
+    let freebsd_dupcheck_stop = freebsd_section_stop.replacen("generic_linkme", "generic_linkm2", 1);
 
     let call_site = Span::call_site();
-    let link_section_macro_str = format!("_linkme_macro_{}", ident);
+    let link_section_macro_str = format!("_generic_linkme_macro_{}", ident);
     let link_section_macro = Ident::new(&link_section_macro_str, call_site);
 
     quote! {
@@ -131,13 +153,13 @@ pub fn expand(input: TokenStream) -> TokenStream {
                 #[cfg_attr(any(target_os = "macos", target_os = "ios", target_os = "tvos"), link_name = #macho_section_start)]
                 #[cfg_attr(target_os = "illumos", link_name = #illumos_section_start)]
                 #[cfg_attr(target_os = "freebsd", link_name = #freebsd_section_start)]
-                static LINKME_START: <#ty as #linkme_path::__private::Slice>::Element;
+                static LINKME_START: #linkme_path::__private::u8;
 
                 #[cfg_attr(any(target_os = "none", target_os = "linux"), link_name = #linux_section_stop)]
                 #[cfg_attr(any(target_os = "macos", target_os = "ios", target_os = "tvos"), link_name = #macho_section_stop)]
                 #[cfg_attr(target_os = "illumos", link_name = #illumos_section_stop)]
                 #[cfg_attr(target_os = "freebsd", link_name = #freebsd_section_stop)]
-                static LINKME_STOP: <#ty as #linkme_path::__private::Slice>::Element;
+                static LINKME_STOP: #linkme_path::__private::u8;
 
                 #[cfg_attr(any(target_os = "none", target_os = "linux"), link_name = #linux_dupcheck_start)]
                 #[cfg_attr(any(target_os = "macos", target_os = "ios", target_os = "tvos"), link_name = #macho_dupcheck_start)]
@@ -154,11 +176,11 @@ pub fn expand(input: TokenStream) -> TokenStream {
 
             #[cfg(target_os = "windows")]
             #[link_section = #windows_section_start]
-            static LINKME_START: [<#ty as #linkme_path::__private::Slice>::Element; 0] = [];
+            static LINKME_START: [#linkme_path::__private::u8; 0] = [];
 
             #[cfg(target_os = "windows")]
             #[link_section = #windows_section_stop]
-            static LINKME_STOP: [<#ty as #linkme_path::__private::Slice>::Element; 0] = [];
+            static LINKME_STOP: [#linkme_path::__private::u8; 0] = [];
 
             #[cfg(target_os = "windows")]
             #[link_section = #windows_dupcheck_start]
@@ -173,7 +195,7 @@ pub fn expand(input: TokenStream) -> TokenStream {
             #[cfg_attr(any(target_os = "none", target_os = "linux"), link_section = #linux_section)]
             #[cfg_attr(target_os = "illumos", link_section = #illumos_section)]
             #[cfg_attr(target_os = "freebsd", link_section = #freebsd_section)]
-            static mut LINKME_PLEASE: [<#ty as #linkme_path::__private::Slice>::Element; 0] = [];
+            static mut LINKME_PLEASE: [#linkme_path::__private::u8; 0] = [];
 
             #used
             #[cfg_attr(any(target_os = "none", target_os = "linux"), link_section = #linux_dupcheck)]

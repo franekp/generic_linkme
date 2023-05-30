@@ -36,7 +36,7 @@ impl Parse for Element {
             if let Some(mut_token) = mut_token {
                 return Err(Error::new_spanned(
                     mut_token,
-                    "static mut is not supported by distributed_slice",
+                    "static mut is not supported by distributed_fn_slice",
                 ));
             }
             let ident: Ident = input.parse()?;
