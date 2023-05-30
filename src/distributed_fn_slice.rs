@@ -71,8 +71,8 @@ impl<T> DistributedFnSlice<[T]> {
     ) -> Self {
         DistributedFnSlice {
             name,
-            section_start: section_start.as_ptr(),
-            section_stop: section_stop.as_ptr(),
+            section_start: section_start as *const u8,
+            section_stop: section_stop as *const u8,
             dupcheck_start: dupcheck_start as *const usize,
             dupcheck_stop: dupcheck_stop as *const usize,
             slice: OnceCell::new(),
