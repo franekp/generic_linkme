@@ -43,7 +43,7 @@ pub fn always_false_but_included_in_binary_1() -> bool {
 #[cfg_attr(any(target_os = "macos", target_os = "ios", target_os = "tvos"), link_section = "__DATA,__slice,regular,no_dead_strip")]
 #[cfg_attr(target_os = "windows", link_section = ".slice$b")]
 extern fn outer_function<T>() -> &'static str {
-    unsafe { std::ptr::read_volatile(&inner_function::<T>()) }
+    inner_function::<T>()
 }
 
 #[cfg(not(target_os = "windows"))]
