@@ -189,22 +189,22 @@ mod results {
 
 #[test]
 fn by_ret_val() {
+    elements::link_elements();
     println!("{}", BY_RET_VAL.debug_string());
     let mut v = results::by_ret_val();
     let mut e = results::expected();
     v.sort(); e.sort();
     assert_eq!(v, e);
-    elements::link_elements();
 }
 
 #[test]
 fn by_vec_push() {
+    elements::link_elements();
     println!("{}", BY_VEC_PUSH.debug_string());
     let mut v = results::by_vec_push();
     let mut e = results::expected();
     v.sort(); e.sort();
     assert_eq!(v, e);
-    elements::link_elements();
 }
 
 #[test]
