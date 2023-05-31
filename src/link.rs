@@ -15,7 +15,23 @@ pub extern "C" fn link<Args>(f: impl AnyFn<Args>) {
 extern "C" fn link2<Args>(f: &dyn AnyFn<Args>) {
     let f2 = unsafe { std::ptr::read_volatile(&f) };
     std::mem::forget(f);
-    unsafe { f2.dry_run() }
+    unsafe {
+        std::arch::asm!(
+            // Rust requires us to use every register defined, so we use it inside of a comment.
+            "/* optimization_barrier_u8 {a} {b} {c} {d} {e} {res} */",
+            a = sym MAYBE_VALID_A,
+            b = sym MAYBE_VALID_B,
+            c = sym MAYBE_VALID_C,
+            d = sym MAYBE_VALID_D,
+            e = sym MAYBE_VALID_E,
+            res = sym MAYBE_VALID_RES,
+
+            // By guaranteeing more invariants we improve the compiler's ability to optimize.
+            // Since the assembly block is a no-op, we easily uphold all of these invariants.
+            options(nostack, preserves_flags)
+        );
+        f2.dry_run()
+    }
     println!("{}", f2 as *const dyn AnyFn<Args> as *const () as usize);
 }
 
@@ -25,6 +41,25 @@ static mut MAYBE_VALID_C: usize = 0;
 static mut MAYBE_VALID_D: usize = 0;
 static mut MAYBE_VALID_E: usize = 0;
 static mut MAYBE_VALID_RES: usize = 0;
+
+fn optimization_barrier_u8(mut value: u8) -> u8 {
+    unsafe {
+        std::arch::asm!(
+            // Rust requires us to use every register defined, so we use it inside of a comment.
+            "/* optimization_barrier_u8 {unused} */",
+
+            // Define a single input/output register called "unused".
+            // The Rust compiler will perceive this as a mutation of `value`.
+            unused = inout(reg_byte) value,
+
+            // By guaranteeing more invariants we improve the compiler's ability to optimize.
+            // Since the assembly block is a no-op, we easily uphold all of these invariants.
+            options(pure, nomem, nostack, preserves_flags)
+        );
+    }
+
+    value
+}
 
 fn always_false_but_compiler_doesnt_know_that() -> bool {
     static RES: Lazy<bool, fn() -> bool> = Lazy::new(|| {
@@ -64,7 +99,7 @@ fn always_false_but_compiler_doesnt_know_that() -> bool {
             && h == i
             && i == 42
     });
-    *RES
+    optimization_barrier_u8(*RES as u8) != 0
 }
 
 pub trait AnyFn<Args> {
