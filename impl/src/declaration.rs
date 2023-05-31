@@ -4,7 +4,7 @@ use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream, Result};
 use syn::{
     bracketed, Attribute, Error, GenericArgument, Ident, Lifetime, PathArguments, Token, Type,
-    Visibility,
+    Visibility, TypeSlice,
 };
 
 struct Declaration {
@@ -29,10 +29,17 @@ impl Parse for Declaration {
         let ident: Ident = input.parse()?;
         input.parse::<Token![:]>()?;
         let mut ty: Type = input.parse()?;
-        let mut fn_ty = match &mut ty {
-            Type::BareFn(fn_ty) => fn_ty,
+        let inner_ty: &mut Type = match &mut ty {
+            Type::Slice(TypeSlice { elem, .. }) => &mut *elem,
             _ => return Err(Error::new_spanned(
                 ty.to_token_stream(),
+                "distributed_fn_slice must be a slice",
+            )),
+        };
+        let mut fn_ty = match inner_ty {
+            Type::BareFn(fn_ty) => fn_ty,
+            _ => return Err(Error::new_spanned(
+                inner_ty.to_token_stream(),
                 "distributed_fn_slice can only contain bare function pointers",
             )),
         };
@@ -41,7 +48,7 @@ impl Parse for Declaration {
                 fn_ty.abi = Some(syn::parse2(quote! {extern "C"}).unwrap());
             }
             Some(abi) => {
-                let is_c = abi.name.is_none() || &abi.name.as_ref().unwrap().to_token_stream().to_string() == "C";
+                let is_c = abi.name.is_none() || abi.name.as_ref().unwrap().to_token_stream().to_string().trim() == "\"C\"";
                 if !is_c {
                     return Err(Error::new_spanned(
                         abi.to_token_stream(),
@@ -138,7 +145,7 @@ pub fn expand(input: TokenStream) -> TokenStream {
 
     quote! {
         #(#attrs)*
-        #vis static #ident: #linkme_path::DistributedSlice<#ty> = {
+        #vis static #ident: #linkme_path::DistributedFnSlice<#ty> = {
             #[cfg(any(
                 target_os = "none",
                 target_os = "linux",
@@ -222,7 +229,7 @@ pub fn expand(input: TokenStream) -> TokenStream {
             );
 
             unsafe {
-                #linkme_path::DistributedSlice::private_new(
+                #linkme_path::DistributedFnSlice::private_new(
                     #name,
                     &LINKME_START,
                     &LINKME_STOP,

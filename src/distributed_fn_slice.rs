@@ -1,4 +1,5 @@
 use core::mem;
+use std::fmt::Write;
 use core::ops::Deref;
 use core::slice;
 use once_cell::sync::OnceCell;
@@ -100,6 +101,7 @@ impl<T> DistributedFnSlice<[T]> {
         match self.slice.get() {
             Some(slice) => slice,
             None => {
+
                 let res: &'static [T] = Box::leak(extract_function_pointers::<T>(self.get_code()).into_boxed_slice());
                 match self.slice.set(res) {
                     Ok(()) => res,
@@ -114,6 +116,10 @@ impl<T> DistributedFnSlice<[T]> {
                 }
             }
         }
+    }
+
+    pub fn debug_string(&self) -> String {
+        disasm(self.get_code())
     }
 }
 
@@ -167,4 +173,37 @@ fn extract_function_pointers<T>(code: &[u8]) -> Vec<T> {
         }
     }
     v
+}
+
+fn disasm(code: &[u8]) -> String {
+    let mut res = String::new();
+    let cs = Capstone::new()
+        .x86()
+        .mode(arch::x86::ArchMode::Mode64)
+        .syntax(arch::x86::ArchSyntax::Att)
+        .detail(true)
+        .build()
+        .expect("Failed to create Capstone object");
+
+    write!(&mut res, "Code len = {}", code.len()).unwrap();
+    let addr = code.as_ptr() as usize;
+    let insns = cs.disasm_all(code, addr as u64)
+        .expect("Failed to disassemble");
+    write!(&mut res, "Found {} instructions", insns.len()).unwrap();
+    for i in insns.as_ref() {
+        write!(&mut res, "").unwrap();
+        write!(&mut res, "{}", i).unwrap();
+        write!(&mut res, "{:4}ins_id: {}", "", i.id().0).unwrap();
+        write!(&mut res, "{:4}ins_name: {}", "", cs.insn_name(i.id()).expect("failed to get insn name")).unwrap();
+
+        let detail: InsnDetail = cs.insn_detail(&i).expect("Failed to get insn detail");
+        let arch_detail: ArchDetail = detail.arch_detail();
+        let ops = arch_detail.operands();
+
+        write!(&mut res, "{:4}operands: {}", "", ops.len()).unwrap();
+        for op in ops {
+            write!(&mut res, "{:8}{:?}", "", op).unwrap();
+        }
+    }
+    res
 }

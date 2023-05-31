@@ -349,18 +349,43 @@ pub fn expand2(path: Path, pos: Option<usize>, input: Element2) -> TokenStream {
         .collect::<Vec<_>>();
     let mut receiver = Vec::new();
     let arguments = input.item.sig.inputs
-        .iter().flat_map(|arg| {
+        .iter().map(|arg| {
             match arg {
                 syn::FnArg::Receiver(r) => {
                     receiver.push(r.self_token.clone());
-                    None
+                    Ok(None)
                 },
                 syn::FnArg::Typed(pt) => {
-                    Some((*pt.pat).clone())
+                    let pat = &*pt.pat;
+                    // return Some(pat.clone());
+                    match pat {
+                        syn::Pat::Ident(pi) => {
+                            if pi.by_ref.is_some() {
+                                Err(Error::new_spanned(
+                                    pi.by_ref.to_token_stream(),
+                                    "distributed_fn_slice: ref patterns in argument position are not supported",
+                                ))
+                            } else {
+                                Ok(Some(pi.ident.clone()))
+                            }
+                        },
+                        syn::Pat::Wild(_) => Err(Error::new_spanned(
+                            pat.to_token_stream(),
+                            "distributed_fn_slice: all arguments must be named",
+                        )),
+                        _ => Err(Error::new_spanned(
+                            pat.to_token_stream(),
+                            "distributed_fn_slice: destructuring arguments are not supported",
+                        )),
+                    }
                 },
             }
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>>>();
+    let arguments = match arguments {
+        Ok(args) => args.into_iter().flat_map(|a| a).collect::<Vec<_>>(),
+        Err(err) => return err.to_compile_error(),
+    };
 
     let ty = input.ty;
     let new = quote_spanned!(input.start_span=> __new);
@@ -381,25 +406,24 @@ pub fn expand2(path: Path, pos: Option<usize>, input: Element2) -> TokenStream {
     outer_impl.vis = Visibility::Inherited;
     outer_impl.sig.abi = Some(syn::parse2(quote! {extern "C"}).unwrap());
     outer_impl.block = Box::new(syn::parse2(quote! {{
-        fn volatile<T>(x: T) { unsafe { let res = std::mem::read_volatile(&x); std::mem::forget(x); res } }
+        fn volatile<T>(x: T) -> T { unsafe { let res = std::ptr::read_volatile(&x); std::mem::forget(x); res } }
         volatile(
-            #inner_impl_name::<#(#lifetime_params,)*#(#type_and_const_params,)*>(
+            #inner_impl_name::<#(#type_and_const_params,)*>(
                 #(volatile(#receiver),)*#(volatile(#arguments),)*
             )
         )
     }}).unwrap());
     let mut rewritten_item = input.item.clone();
     rewritten_item.block = Box::new(syn::parse2(quote! {{
-        #inner_impl #[inline(never)] #outer_impl
+        #[warn(improper_ctypes_definitions, unused_mut)] #inner_impl #[inline(never)] #outer_impl
         unsafe fn __typecheck(_: #linkme_path::__private::Void) {
             let #new = #linkme_path::__private::value::<#ty>;
-            #linkme_path::DistributedFnSlice::private_typecheck(#path, #uninit)
+            #linkme_path::DistributedFnSlice::private_typecheck(&#path, #uninit)
         }
-        #outer_impl_name::<#(#lifetime_params,)*#(#type_and_const_params,)*>(
+        #outer_impl_name::<#(#type_and_const_params,)*>(
             #(#receiver,)*#(#arguments,)*
         )
     }}).unwrap());
-    rewritten_item.sig.abi = Some(syn::parse2(quote! {extern "C"}).unwrap());
     quote! {
         #path ! {
             #(
@@ -407,6 +431,7 @@ pub fn expand2(path: Path, pos: Option<usize>, input: Element2) -> TokenStream {
                 #![linkme_sort_key = #sort_key]
             )*
             #[inline(never)]
+            #[allow(improper_ctypes_definitions, unused_mut)]
             #rewritten_item
         }
     }
