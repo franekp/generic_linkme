@@ -53,15 +53,15 @@ pub mod windows {
     use syn::Ident;
 
     pub fn section(ident: &Ident) -> String {
-        format!(".generic_linkme_{}$b", ident)
+        format!(".glinkme_{}$b", ident)
     }
 
     pub fn section_start(ident: &Ident) -> String {
-        format!(".generic_linkme_{}$a", ident)
+        format!(".glinkme_{}$a", ident)
     }
 
     pub fn section_stop(ident: &Ident) -> String {
-        format!(".generic_linkme_{}$c", ident)
+        format!(".glinkme_{}$c", ident)
     }
 }
 

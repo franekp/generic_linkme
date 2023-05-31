@@ -2,6 +2,8 @@ use std::any::{Any, type_name};
 use std::rc::Rc;
 use generic_linkme::{distributed_fn_slice, link};
 
+use crate::declarations::{BY_RET_VAL, BY_VEC_PUSH, BY_OWNED_ARRAY, BY_MUTABLE_CONT, BY_IMMUTABLE_CONT};
+
 mod declarations {
     use super::*;
 
@@ -184,6 +186,7 @@ mod results {
 
 #[test]
 fn by_ret_val() {
+    println!("{}", BY_RET_VAL.debug_string());
     let mut v = results::by_ret_val();
     let mut e = results::expected();
     v.sort(); e.sort();
@@ -193,6 +196,7 @@ fn by_ret_val() {
 
 #[test]
 fn by_vec_push() {
+    println!("{}", BY_VEC_PUSH.debug_string());
     let mut v = results::by_vec_push();
     let mut e = results::expected();
     v.sort(); e.sort();
@@ -202,6 +206,7 @@ fn by_vec_push() {
 
 #[test]
 fn by_owned_array() {
+    println!("{}", BY_OWNED_ARRAY.debug_string());
     let mut v = results::by_owned_array();
     let mut e = results::expected();
     v.sort(); e.sort();
@@ -211,6 +216,7 @@ fn by_owned_array() {
 
 #[test]
 fn by_mutable_cont() {
+    println!("{}", BY_MUTABLE_CONT.debug_string());
     let mut v = results::by_mutable_cont();
     let mut e = results::expected();
     v.sort(); e.sort();
@@ -220,6 +226,7 @@ fn by_mutable_cont() {
 
 #[test]
 fn by_immutable_cont() {
+    println!("{}", BY_IMMUTABLE_CONT.debug_string());
     let mut v = results::by_immutable_cont();
     let mut e = results::expected();
     v.sort(); e.sort();

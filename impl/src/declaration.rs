@@ -121,9 +121,9 @@ pub fn expand(input: TokenStream) -> TokenStream {
     let windows_section = linker::windows::section(&ident);
     let windows_section_start = linker::windows::section_start(&ident);
     let windows_section_stop = linker::windows::section_stop(&ident);
-    let windows_dupcheck = windows_section.replacen("generic_linkme", "generic_linkm2", 1);
-    let windows_dupcheck_start = windows_section_start.replacen("generic_linkme", "generic_linkm2", 1);
-    let windows_dupcheck_stop = windows_section_stop.replacen("generic_linkme", "generic_linkm2", 1);
+    let windows_dupcheck = windows_section.replacen("glinkme", "glinkm2", 1);
+    let windows_dupcheck_start = windows_section_start.replacen("glinkme", "glinkm2", 1);
+    let windows_dupcheck_stop = windows_section_stop.replacen("glinkme", "glinkm2", 1);
 
     let illumos_section = linker::illumos::section(&ident);
     let illumos_section_start = linker::illumos::section_start(&ident);
