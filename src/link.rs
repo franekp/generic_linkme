@@ -54,51 +54,51 @@ pub trait AnyFn<Args> {
 
 impl<Res, F: Fn() -> Res> AnyFn<()> for F {
     unsafe fn dry_run(&self) {
-        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)());
+        std::ptr::write_volatile(MAYBE_VALID_RES as *mut Res, (self)());
     }
 }
 
 impl<A, Res, F: Fn(A) -> Res + Clone + 'static> AnyFn<(A,)> for F {
     unsafe fn dry_run(&self) {
-        let a = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_A));
-        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)(a));
+        let a = std::ptr::read_volatile(MAYBE_VALID_A as *const A);
+        std::ptr::write_volatile(MAYBE_VALID_RES as *mut Res, (self)(a));
     }
 }
 
 impl<A, B, Res, F: Fn(A, B) -> Res> AnyFn<(A, B)> for F {
     unsafe fn dry_run(&self) {
-        let a = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_A));
-        let b = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_B));
-        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)(a, b));
+        let a = std::ptr::read_volatile(MAYBE_VALID_A as *const A);
+        let b = std::ptr::read_volatile(MAYBE_VALID_B as *const B);
+        std::ptr::write_volatile(MAYBE_VALID_RES as *mut Res, (self)(a, b));
     }
 }
 
 impl<A, B, C, Res, F: Fn(A, B, C) -> Res> AnyFn<(A, B, C)> for F {
     unsafe fn dry_run(&self) {
-        let a = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_A));
-        let b = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_B));
-        let c = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_C));
-        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)(a, b, c));
+        let a = std::ptr::read_volatile(MAYBE_VALID_A as *const A);
+        let b = std::ptr::read_volatile(MAYBE_VALID_B as *const B);
+        let c = std::ptr::read_volatile(MAYBE_VALID_C as *const C);
+        std::ptr::write_volatile(MAYBE_VALID_RES as *mut Res, (self)(a, b, c));
     }
 }
 
 impl<A, B, C, D, Res, F: Fn(A, B, C, D) -> Res> AnyFn<(A, B, C, D)> for F {
     unsafe fn dry_run(&self) {
-        let a = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_A));
-        let b = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_B));
-        let c = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_C));
-        let d = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_D));
-        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)(a, b, c, d));
+        let a = std::ptr::read_volatile(MAYBE_VALID_A as *const A);
+        let b = std::ptr::read_volatile(MAYBE_VALID_B as *const B);
+        let c = std::ptr::read_volatile(MAYBE_VALID_C as *const C);
+        let d = std::ptr::read_volatile(MAYBE_VALID_D as *const D);
+        std::ptr::write_volatile(MAYBE_VALID_RES as *mut Res, (self)(a, b, c, d));
     }
 }
 
 impl<A, B, C, D, E, Res, F: Fn(A, B, C, D, E) -> Res> AnyFn<(A, B, C, D, E)> for F {
     unsafe fn dry_run(&self) {
-        let a = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_A));
-        let b = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_B));
-        let c = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_C));
-        let d = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_D));
-        let e = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_E));
-        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)(a, b, c, d, e));
+        let a = std::ptr::read_volatile(MAYBE_VALID_A as *const A);
+        let b = std::ptr::read_volatile(MAYBE_VALID_B as *const B);
+        let c = std::ptr::read_volatile(MAYBE_VALID_C as *const C);
+        let d = std::ptr::read_volatile(MAYBE_VALID_D as *const D);
+        let e = std::ptr::read_volatile(MAYBE_VALID_E as *const E);
+        std::ptr::write_volatile(MAYBE_VALID_RES as *mut Res, (self)(a, b, c, d, e));
     }
 }

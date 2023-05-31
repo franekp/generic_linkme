@@ -35,17 +35,17 @@ pub mod macho {
 
     pub fn section(ident: &Ident) -> String {
         format!(
-            "__DATA,__generic_linkme{},regular,no_dead_strip",
+            "__DATA,__glinkm{},regular,no_dead_strip",
             crate::hash(ident),
         )
     }
 
     pub fn section_start(ident: &Ident) -> String {
-        format!("\x01section$start$__DATA$__generic_linkme{}", crate::hash(ident))
+        format!("\x01section$start$__DATA$__glinkm{}", crate::hash(ident))
     }
 
     pub fn section_stop(ident: &Ident) -> String {
-        format!("\x01section$end$__DATA$__generic_linkme{}", crate::hash(ident))
+        format!("\x01section$end$__DATA$__glinkm{}", crate::hash(ident))
     }
 }
 
