@@ -115,6 +115,9 @@ mod elements {
         link(by_ret_val_1::<str>);
         link(by_ret_val_2::<u32, u64>);
         link(by_ret_val_fn_trait::<fn(u32, u32) -> u32>);
+        println!("{}", by_ret_val_1::<str>());
+        println!("{}", by_ret_val_2::<u32, u64>());
+        println!("{}", by_ret_val_fn_trait::<fn(u32, u32) -> u32>());
         link(by_vec_push_1::<str>);
         link(by_vec_push_2::<u32, u64>);
         link(by_vec_push_fn_trait::<fn(u32, u32) -> u32>);
