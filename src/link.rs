@@ -30,7 +30,25 @@ extern "C" fn link2<Args>(f: &dyn AnyFn<Args>) {
             // Since the assembly block is a no-op, we easily uphold all of these invariants.
             options(nostack, preserves_flags)
         );
-        f2.dry_run()
+        f2.dry_run();
+        println!(
+            "{} {} {} {} {} {}",
+            MAYBE_VALID_A,
+            MAYBE_VALID_B,
+            MAYBE_VALID_C,
+            MAYBE_VALID_D,
+            MAYBE_VALID_E,
+            MAYBE_VALID_RES,
+        );
+        println!(
+            "{:?} {:?} {:?} {:?} {:?} {:?}",
+            std::ptr::read_volatile(MAYBE_VALID_A as *const [u64; 32]),
+            std::ptr::read_volatile(MAYBE_VALID_B as *const [u64; 32]),
+            std::ptr::read_volatile(MAYBE_VALID_C as *const [u64; 32]),
+            std::ptr::read_volatile(MAYBE_VALID_D as *const [u64; 32]),
+            std::ptr::read_volatile(MAYBE_VALID_E as *const [u64; 32]),
+            std::ptr::read_volatile(MAYBE_VALID_RES as *const [u64; 32]),
+        );
     }
     println!("{}", f2 as *const dyn AnyFn<Args> as *const () as usize);
 }
