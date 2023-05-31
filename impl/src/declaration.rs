@@ -114,9 +114,9 @@ pub fn expand(input: TokenStream) -> TokenStream {
     let macho_section = linker::macho::section(&ident);
     let macho_section_start = linker::macho::section_start(&ident);
     let macho_section_stop = linker::macho::section_stop(&ident);
-    let macho_dupcheck = macho_section.replacen("generic_linkme", "generic_linkm2", 1);
-    let macho_dupcheck_start = macho_section_start.replacen("generic_linkme", "generic_linkm2", 1);
-    let macho_dupcheck_stop = macho_section_stop.replacen("generic_linkme", "generic_linkm2", 1);
+    let macho_dupcheck = macho_section.replacen("glinkm", "glink2", 1);
+    let macho_dupcheck_start = macho_section_start.replacen("glinkm", "glink2", 1);
+    let macho_dupcheck_stop = macho_section_stop.replacen("glinkm", "glink2", 1);
 
     let windows_section = linker::windows::section(&ident);
     let windows_section_start = linker::windows::section_start(&ident);
