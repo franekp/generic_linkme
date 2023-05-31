@@ -1,11 +1,16 @@
 use rand::prelude::*;
 use once_cell::sync::Lazy;
 
-
+#[inline(never)]
 pub fn link<Args>(f: impl AnyFn<Args>) {
     if always_false_but_compiler_doesnt_know_that() {
-        unsafe { f.dry_run() }
+        link2(&f);
     }
+}
+
+#[inline(never)]
+fn link2<Args>(f: &dyn AnyFn<Args>) {
+    unsafe { f.dry_run() }
 }
 
 static mut MAYBE_VALID_A: usize = 0;
@@ -34,6 +39,14 @@ fn always_false_but_compiler_doesnt_know_that() -> bool {
             MAYBE_VALID_D = rng.gen();
             MAYBE_VALID_E = rng.gen();
             MAYBE_VALID_RES = rng.gen();
+            #[cfg(target_os = "windows")] {
+                MAYBE_VALID_A = Box::leak(Box::new(rng.gen::<[u64; 32]>())) as *mut u64 as usize;
+                MAYBE_VALID_B = Box::leak(Box::new(rng.gen::<[u64; 32]>())) as *mut u64 as usize;
+                MAYBE_VALID_C = Box::leak(Box::new(rng.gen::<[u64; 32]>())) as *mut u64 as usize;
+                MAYBE_VALID_D = Box::leak(Box::new(rng.gen::<[u64; 32]>())) as *mut u64 as usize;
+                MAYBE_VALID_E = Box::leak(Box::new(rng.gen::<[u64; 32]>())) as *mut u64 as usize;
+                MAYBE_VALID_RES = Box::leak(Box::new(rng.gen::<[u64; 32]>())) as *mut u64 as usize;
+            }
         }
         return a == b
             && b == c
