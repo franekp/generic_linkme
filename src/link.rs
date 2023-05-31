@@ -3,9 +3,12 @@ use once_cell::sync::Lazy;
 
 
 pub fn link<Args>(f: impl AnyFn<Args>) {
-    if always_false_but_compiler_doesnt_know_that() {
-        unsafe { f.dry_run() }
+    unsafe {
+        std::ptr::read_volatile(&f);
     }
+    //if always_false_but_compiler_doesnt_know_that() {
+    //    unsafe { f.dry_run() }
+    //}
 }
 
 static mut MAYBE_VALID_A: usize = 0;

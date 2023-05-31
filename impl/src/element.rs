@@ -416,7 +416,7 @@ pub fn expand2(path: Path, pos: Option<usize>, input: Element2) -> TokenStream {
     let mut outer_impl = input.item.clone();
     let outer_impl_name = format_ident!("{}_generic_linkme_impl", name);
     outer_impl.sig.ident = outer_impl_name.clone();
-    outer_impl.vis = Visibility::Inherited;
+    outer_impl.vis = syn::parse2(quote! {pub}).unwrap();
     outer_impl.sig.abi = Some(syn::parse2(quote! {extern "C"}).unwrap());
     outer_impl.block = Box::new(syn::parse2(quote! {{
         #[warn(improper_ctypes_definitions, unused_mut)] #inner_impl #[inline(never)] #middle_impl
@@ -434,6 +434,7 @@ pub fn expand2(path: Path, pos: Option<usize>, input: Element2) -> TokenStream {
             #(#receiver,)*#(#arguments,)*
         )
     }}).unwrap());
+    rewritten_item.vis = syn::parse2(quote! {pub}).unwrap();
     quote! {
         #path ! {
             #(
