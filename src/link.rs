@@ -1,4 +1,3 @@
-use std::any::Any;
 use rand::prelude::*;
 use once_cell::sync::Lazy;
 
@@ -14,6 +13,7 @@ static mut MAYBE_VALID_B: usize = 0;
 static mut MAYBE_VALID_C: usize = 0;
 static mut MAYBE_VALID_D: usize = 0;
 static mut MAYBE_VALID_E: usize = 0;
+static mut MAYBE_VALID_RES: usize = 0;
 
 fn always_false_but_compiler_doesnt_know_that() -> bool {
     static RES: Lazy<bool, fn() -> bool> = Lazy::new(|| {
@@ -33,6 +33,7 @@ fn always_false_but_compiler_doesnt_know_that() -> bool {
             MAYBE_VALID_C = rng.gen();
             MAYBE_VALID_D = rng.gen();
             MAYBE_VALID_E = rng.gen();
+            MAYBE_VALID_RES = rng.gen();
         }
         return a == b
             && b == c
@@ -51,19 +52,16 @@ pub trait AnyFn<Args> {
     unsafe fn dry_run(&self);
 }
 
-#[used]
-static mut LAST_FN: Option<Box<dyn Any>> = None;
-
 impl<Res, F: Fn() -> Res> AnyFn<()> for F {
     unsafe fn dry_run(&self) {
-        std::ptr::read_volatile(&(self)());
+        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)());
     }
 }
 
 impl<A, Res, F: Fn(A) -> Res + Clone + 'static> AnyFn<(A,)> for F {
     unsafe fn dry_run(&self) {
         let a = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_A));
-        std::ptr::read_volatile(&(self)(a));
+        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)(a));
     }
 }
 
@@ -71,7 +69,7 @@ impl<A, B, Res, F: Fn(A, B) -> Res> AnyFn<(A, B)> for F {
     unsafe fn dry_run(&self) {
         let a = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_A));
         let b = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_B));
-        std::ptr::read_volatile(&(self)(a, b));
+        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)(a, b));
     }
 }
 
@@ -80,7 +78,7 @@ impl<A, B, C, Res, F: Fn(A, B, C) -> Res> AnyFn<(A, B, C)> for F {
         let a = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_A));
         let b = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_B));
         let c = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_C));
-        std::ptr::read_volatile(&(self)(a, b, c));
+        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)(a, b, c));
     }
 }
 
@@ -90,7 +88,7 @@ impl<A, B, C, D, Res, F: Fn(A, B, C, D) -> Res> AnyFn<(A, B, C, D)> for F {
         let b = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_B));
         let c = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_C));
         let d = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_D));
-        std::ptr::read_volatile(&(self)(a, b, c, d));
+        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)(a, b, c, d));
     }
 }
 
@@ -101,6 +99,6 @@ impl<A, B, C, D, E, Res, F: Fn(A, B, C, D, E) -> Res> AnyFn<(A, B, C, D, E)> for
         let c = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_C));
         let d = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_D));
         let e = std::ptr::read_volatile(std::mem::transmute(MAYBE_VALID_E));
-        std::ptr::read_volatile(&(self)(a, b, c, d, e));
+        std::ptr::write_volatile(std::mem::transmute(MAYBE_VALID_RES), (self)(a, b, c, d, e));
     }
 }
