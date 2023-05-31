@@ -1,6 +1,14 @@
 use rand::prelude::*;
 use once_cell::sync::Lazy;
 
+#[macro_export]
+macro_rules! link2 {
+    ($f:expr) => {
+        unsafe { std::ptr::read_volatile($f as *const u8) }
+    }
+}
+
+pub use link2;
 
 pub fn link<Args>(f: impl AnyFn<Args>) {
     unsafe {

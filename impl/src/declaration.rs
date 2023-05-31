@@ -45,14 +45,14 @@ impl Parse for Declaration {
         };
         match &fn_ty.abi {
             None => {
-                fn_ty.abi = Some(syn::parse2(quote! {extern "C"}).unwrap());
+                fn_ty.abi = Some(syn::parse2(quote! {extern "sysv64"}).unwrap());
             }
             Some(abi) => {
-                let is_c = abi.name.is_none() || abi.name.as_ref().unwrap().to_token_stream().to_string().trim() == "\"C\"";
+                let is_c = abi.name.is_none() || abi.name.as_ref().unwrap().to_token_stream().to_string().trim() == "\"sysv64\"";
                 if !is_c {
                     return Err(Error::new_spanned(
                         abi.to_token_stream(),
-                        "distributed_fn_slice can only contain function pointers that use C ABI",
+                        "distributed_fn_slice can only contain function pointers that use sysv64",
                     ))
                 }
             }

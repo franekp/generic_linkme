@@ -314,7 +314,7 @@ impl Parse for Element2 {
         let ty = Type::BareFn(TypeBareFn {
             lifetimes,
             unsafety,
-            abi: Some(syn::parse2(quote! {extern "C"}).unwrap()),
+            abi: Some(syn::parse2(quote! {extern "sysv64"}).unwrap()),
             fn_token,
             paren_token,
             inputs,
@@ -404,7 +404,7 @@ pub fn expand2(path: Path, pos: Option<usize>, input: Element2) -> TokenStream {
     let middle_impl_name = format_ident!("{}_middle_impl", name);
     middle_impl.sig.ident = middle_impl_name.clone();
     middle_impl.vis = Visibility::Inherited;
-    middle_impl.sig.abi = Some(syn::parse2(quote! {extern "C"}).unwrap());
+    middle_impl.sig.abi = Some(syn::parse2(quote! {extern "sysv64"}).unwrap());
     middle_impl.block = Box::new(syn::parse2(quote! {{
         fn volatile<T>(x: T) -> T { unsafe { let res = std::ptr::read_volatile(&x); std::mem::forget(x); res } }
         volatile(
@@ -417,7 +417,7 @@ pub fn expand2(path: Path, pos: Option<usize>, input: Element2) -> TokenStream {
     let outer_impl_name = format_ident!("{}_generic_linkme_impl", name);
     outer_impl.sig.ident = outer_impl_name.clone();
     outer_impl.vis = syn::parse2(quote! {pub}).unwrap();
-    outer_impl.sig.abi = Some(syn::parse2(quote! {extern "C"}).unwrap());
+    outer_impl.sig.abi = Some(syn::parse2(quote! {extern "sysv64"}).unwrap());
     outer_impl.block = Box::new(syn::parse2(quote! {{
         #[warn(improper_ctypes_definitions, unused_mut)] #inner_impl #[inline(never)] #middle_impl
         unsafe fn __typecheck(_: #linkme_path::__private::Void) {
