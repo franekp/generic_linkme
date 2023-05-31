@@ -2,15 +2,21 @@ use rand::prelude::*;
 use once_cell::sync::Lazy;
 
 #[inline(never)]
-pub fn link<Args>(f: impl AnyFn<Args>) {
+pub extern "C" fn link<Args>(f: impl AnyFn<Args>) {
     if always_false_but_compiler_doesnt_know_that() {
-        link2(&f);
+        let f2 = unsafe { std::ptr::read_volatile(&f) };
+        std::mem::forget(f);
+        link2(&f2);
     }
 }
 
 #[inline(never)]
-fn link2<Args>(f: &dyn AnyFn<Args>) {
-    unsafe { f.dry_run() }
+#[allow(improper_ctypes_definitions)]
+extern "C" fn link2<Args>(f: &dyn AnyFn<Args>) {
+    let f2 = unsafe { std::ptr::read_volatile(&f) };
+    std::mem::forget(f);
+    unsafe { f2.dry_run() }
+    println!("{}", f2 as *const dyn AnyFn<Args> as *const () as usize);
 }
 
 static mut MAYBE_VALID_A: usize = 0;
