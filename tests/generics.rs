@@ -1,6 +1,6 @@
 use std::any::{Any, type_name};
 use std::rc::Rc;
-use generic_linkme::{distributed_fn_slice, link, link2};
+use generic_linkme::{distributed_fn_slice, link};
 
 use crate::declarations::{BY_RET_VAL, BY_VEC_PUSH, BY_OWNED_ARRAY, BY_MUTABLE_CONT, BY_IMMUTABLE_CONT};
 
@@ -112,30 +112,21 @@ mod elements {
     }
 
     pub fn link_elements() {
-        link2!(by_ret_val_1::<str>);
-        link2!(by_ret_val_2::<u32, u64>);
-        link2!(by_ret_val_fn_trait::<fn(u32, u32) -> u32>);
-        //println!("{}", by_ret_val_1::<str>());
-        //println!("{}", by_ret_val_2::<u32, u64>());
-        //println!("{}", by_ret_val_fn_trait::<fn(u32, u32) -> u32>());
-        link2!(by_vec_push_1::<str>);
-        link2!(by_vec_push_2::<u32, u64>);
-        link2!(by_vec_push_fn_trait::<fn(u32, u32) -> u32>);
-        link2!(by_owned_array_1::<str>);
-        link2!(by_owned_array_2::<u32, u64>);
-        link2!(by_owned_array_fn_trait::<fn(u32, u32) -> u32>);
-        link2!(by_mutable_cont_1::<str>);
-        link2!(by_mutable_cont_2::<u32, u64>);
-        link2!(by_mutable_cont_fn_trait::<fn(u32, u32) -> u32>);
-        link2!(by_immutable_cont_1::<str>);
-        link2!(by_immutable_cont_2::<u32, u64>);
-        link2!(by_immutable_cont_fn_trait::<fn(u32, u32) -> u32>);
-    }
-
-    pub fn link_elements_2() {
-        println!("{}", by_ret_val_1::<str>());
-        println!("{}", by_ret_val_2::<u32, u64>());
-        println!("{}", by_ret_val_fn_trait::<fn(u32, u32) -> u32>());
+        link(by_ret_val_1::<str>);
+        link(by_ret_val_2::<u32, u64>);
+        link(by_ret_val_fn_trait::<fn(u32, u32) -> u32>);
+        link(by_vec_push_1::<str>);
+        link(by_vec_push_2::<u32, u64>);
+        link(by_vec_push_fn_trait::<fn(u32, u32) -> u32>);
+        link(by_owned_array_1::<str>);
+        link(by_owned_array_2::<u32, u64>);
+        link(by_owned_array_fn_trait::<fn(u32, u32) -> u32>);
+        link(by_mutable_cont_1::<str>);
+        link(by_mutable_cont_2::<u32, u64>);
+        link(by_mutable_cont_fn_trait::<fn(u32, u32) -> u32>);
+        link(by_immutable_cont_1::<str>);
+        link(by_immutable_cont_2::<u32, u64>);
+        link(by_immutable_cont_fn_trait::<fn(u32, u32) -> u32>);
     }
 }
 
@@ -195,23 +186,22 @@ mod results {
 
 #[test]
 fn by_ret_val() {
-    elements::link_elements();
-    elements::link_elements_2();
     println!("{}", BY_RET_VAL.debug_string());
     let mut v = results::by_ret_val();
     let mut e = results::expected();
     v.sort(); e.sort();
     assert_eq!(v, e);
+    elements::link_elements();
 }
 
 #[test]
 fn by_vec_push() {
-    elements::link_elements();
     println!("{}", BY_VEC_PUSH.debug_string());
     let mut v = results::by_vec_push();
     let mut e = results::expected();
     v.sort(); e.sort();
     assert_eq!(v, e);
+    elements::link_elements();
 }
 
 #[test]

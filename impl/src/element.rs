@@ -334,12 +334,6 @@ impl Parse for Element2 {
 
 pub fn expand2(path: Path, pos: Option<usize>, input: Element2) -> TokenStream {
     let name = input.item.sig.ident.clone();
-    let lifetime_params = input.item.sig.generics.params
-        .iter().flat_map(|p| match p {
-            GenericParam::Lifetime(lp) => Some(lp.lifetime.clone()),
-            _ => None
-        })
-        .collect::<Vec<_>>();
     let type_and_const_params = input.item.sig.generics.params
         .iter().flat_map(|p| match p {
             GenericParam::Type(tp) => Some(tp.ident.clone()),
@@ -445,6 +439,7 @@ pub fn expand2(path: Path, pos: Option<usize>, input: Element2) -> TokenStream {
             #[allow(improper_ctypes_definitions, unused_mut)]
             #outer_impl
         }
+        #[allow(unused_mut)]
         #rewritten_item
     }
 }
