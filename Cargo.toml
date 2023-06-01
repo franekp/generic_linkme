@@ -13,3 +13,28 @@ once_cell = "1.17.2"
 
 [[bin]]
 name = "poc"
+
+[profile.opt-2]
+inherits = "release"
+opt-level = 2
+
+[profile.lto-thin]
+inherits = "release"
+lto = "thin"
+codegen-units = 1
+
+[profile.lto-fat]
+inherits = "release"
+lto = "fat"
+codegen-units = 1
+
+[profile.strip-symbols]
+inherits = "release"
+strip = "symbols"
+codegen-units = 1
+
+[profile.opt-s]
+inherits = "release"
+strip = "symbols"
+opt-level = "s"
+codegen-units = 1

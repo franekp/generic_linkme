@@ -1,0 +1,33 @@
+name: Generic Linkme
+
+on: [push]
+jobs:
+  poc:
+    runs-on: ${{matrix.os}}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [nightly, beta, stable, 1.69.0]
+        os: [ubuntu, macos]
+        include:
+          - os: windows
+            rust: nightly-x86_64-pc-windows-gnu
+          - os: windows
+            rust: beta-x86_64-pc-windows-gnu
+          - os: windows
+            rust: stable-x86_64-pc-windows-gnu
+          - os: windows
+            rust: 1.69.0-x86_64-pc-windows-gnu
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{matrix.rust}}
+      - run: cargo test
+      - run: cargo test --release
+      - run: cargo test --profile opt-2
+      - run: cargo test --profile lto-thin
+      - run: cargo test --profile lto-fat
+      - run: cargo test --profile strip-symbols
+      - run: cargo test --profile opt-s
